@@ -2,7 +2,7 @@
 
 use Sarahman\Mailer\Transport\SendgridTransport;
 use System\Classes\PluginBase;
-use System\Models\MailSettings;
+use System\Models\MailSetting;
 
 class Plugin extends PluginBase
 {
@@ -32,8 +32,8 @@ class Plugin extends PluginBase
                 return;
             }
 
-            // Only for the MailSettings model
-            if (!$widget->model instanceof MailSettings) {
+            // Only for the MailSetting model
+            if (!$widget->model instanceof MailSetting) {
                 return;
             }
 
@@ -62,7 +62,7 @@ class Plugin extends PluginBase
             });
         });
 
-        MailSettings::extend(function($model) {
+        MailSetting::extend(function($model) {
             $model->bindEvent('model.beforeValidate', function () use ($model) {
                 $model->rules['sendgrid_api_key'] = 'required_if:send_mode,' . self::MODE_SENDGRID;
             });
@@ -75,7 +75,7 @@ class Plugin extends PluginBase
          * Override system mailer with mail settings
          */
         \Event::listen('mailer.register', function () {
-            $settings = MailSettings::instance();
+            $settings = MailSetting::instance();
             if ($settings->send_mode === self::MODE_SENDGRID) {
                 $config = \App::make('config');
                 $config->set('services.sendgrid.api_key', $settings->sendgrid_api_key);

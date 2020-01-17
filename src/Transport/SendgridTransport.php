@@ -1,19 +1,19 @@
 <?php namespace Sarahman\Mailer\Transport;
 
 use Swift_Transport;
-use Swift_Mime_Message;
+use Swift_Mime_SimpleMessage;
 use Swift_Events_EventListener;
 
 /**
- * Class SendGridTransport
+ * Class SendgridTransport
  *
  * @package Illuminate\Mail\Transport
- * @see https://github.com/clarification/sendgrid-laravel-driver/blob/master/src/Transport/SendGridTransport.php
+ * @see https://github.com/clarification/sendgrid-laravel-driver/blob/master/src/Transport/SendgridTransport.php
  */
-class SendGridTransport implements Swift_Transport
+class SendgridTransport implements Swift_Transport
 {
     /**
-     * The SendGrid API key.
+     * The Sendgrid API key.
      *
      * @var string
      */
@@ -23,7 +23,7 @@ class SendGridTransport implements Swift_Transport
     private $mail;
 
     /**
-     * Create a new SendGrid transport instance.
+     * Create a new Sendgrid transport instance.
      *
      * @param  string $key
      * @return void
@@ -57,7 +57,15 @@ class SendGridTransport implements Swift_Transport
     {
         return true;
     }
-
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function ping()
+    {
+        return true;
+    }
+    
     /**
      * {@inheritdoc}
      */
@@ -70,7 +78,7 @@ class SendGridTransport implements Swift_Transport
      * {@inheritdoc}
      * @throws \Exception
      */
-    public function send(Swift_Mime_Message $message, &$failedRecipients = null)
+    public function send(Swift_Mime_SimpleMessage $message, &$failedRecipients = null)
     {
         $this->setSubject($message);
         $this->setFrom($message);
@@ -82,8 +90,8 @@ class SendGridTransport implements Swift_Transport
         $this->setAttachment($message);
 
         try {
-            $sendGrid = new \SendGrid($this->key);
-            $response = $sendGrid->send($this->mail);
+            $sendgrid = new \SendGrid($this->key);
+            $response = $sendgrid->send($this->mail);
             return in_array($response->statusCode(), [200, 202]);
 
         } catch (\Exception $e) {
@@ -93,9 +101,9 @@ class SendGridTransport implements Swift_Transport
     }
 
     /**
-     * @param  Swift_Mime_Message $message
+     * @param  Swift_Mime_SimpleMessage $message
      */
-    private function setSubject(Swift_Mime_Message $message)
+    private function setSubject(Swift_Mime_SimpleMessage $message)
     {
         if ($subject = $message->getSubject()) {
             $this->mail->setSubject($subject);
@@ -103,10 +111,9 @@ class SendGridTransport implements Swift_Transport
     }
 
     /**
-     * @param  Swift_Mime_Message $message
-     * @throws \SendGrid\Mail\TypeException
+     * @param  Swift_Mime_SimpleMessage $message
      */
-    private function setFrom(Swift_Mime_Message $message)
+    private function setFrom(Swift_Mime_SimpleMessage $message)
     {
         if ($from = $message->getFrom()) {
             $this->mail->setFrom(key($from), current($from));
@@ -114,9 +121,9 @@ class SendGridTransport implements Swift_Transport
     }
 
     /**
-     * @param  Swift_Mime_Message $message
+     * @param  Swift_Mime_SimpleMessage $message
      */
-    private function setTo(Swift_Mime_Message $message)
+    private function setTo(Swift_Mime_SimpleMessage $message)
     {
         if ($to = $message->getTo()) {
             $this->mail->addTos($to);
@@ -124,9 +131,9 @@ class SendGridTransport implements Swift_Transport
     }
 
     /**
-     * @param Swift_Mime_Message $message
+     * @param Swift_Mime_SimpleMessage $message
      */
-    private function setCc(Swift_Mime_Message $message)
+    private function setCc(Swift_Mime_SimpleMessage $message)
     {
         if ($cc = $message->getCc()) {
             $this->mail->addCcs($cc);
@@ -134,9 +141,9 @@ class SendGridTransport implements Swift_Transport
     }
 
     /**
-     * @param Swift_Mime_Message $message
+     * @param Swift_Mime_SimpleMessage $message
      */
-    private function setBcc(Swift_Mime_Message $message)
+    private function setBcc(Swift_Mime_SimpleMessage $message)
     {
         if ($bcc = $message->getBcc()) {
             $this->mail->addBccs($bcc);
@@ -144,9 +151,9 @@ class SendGridTransport implements Swift_Transport
     }
 
     /**
-     * @param Swift_Mime_Message $message
+     * @param Swift_Mime_SimpleMessage $message
      */
-    private function setReplyTo(Swift_Mime_Message $message)
+    private function setReplyTo(Swift_Mime_SimpleMessage $message)
     {
         if ($replyTo = $message->getReplyTo()) {
             $this->mail->setReplyTo(key($replyTo), current($replyTo));
@@ -156,9 +163,9 @@ class SendGridTransport implements Swift_Transport
     /**
      * Set text contents.
      *
-     * @param Swift_Mime_Message $message
+     * @param Swift_Mime_SimpleMessage $message
      */
-    private function setText(Swift_Mime_Message $message)
+    private function setText(Swift_Mime_SimpleMessage $message)
     {
         empty($message->getBody()) || $this->mail->addContent($message->getContentType(), $message->getBody());
         foreach ($message->getChildren() AS $attachment) {
@@ -170,9 +177,9 @@ class SendGridTransport implements Swift_Transport
     /**
      * Set Attachment Files.
      *
-     * @param Swift_Mime_Message $message
+     * @param Swift_Mime_SimpleMessage $message
      */
-    private function setAttachment(Swift_Mime_Message $message)
+    private function setAttachment(Swift_Mime_SimpleMessage $message)
     {
         foreach ($message->getChildren() AS $attachment) {
             if (!$attachment instanceof \Swift_Attachment) continue;
